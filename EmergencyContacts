@@ -153,4 +153,163 @@ export default function EmergencyContacts() {
                 </CardContent>
               </Card>
             ))}
- 
+             <CardHeader>
+              <CardTitle>Add New Contact</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-4 gap-4">
+                <div className="md:col-span-1">
+                  <Label>Name</Label>
+                  <Input
+                    placeholder="Contact name"
+                    value={newContact.name}
+                    onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
+                  />
+                </div>
+                <div className="md:col-span-1">
+                  <Label>Phone Number</Label>
+                  <Input
+                    placeholder="+27 XX XXX XXXX"
+                    value={newContact.phone}
+                    onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
+                  />
+                </div>
+                <div className="md:col-span-1">
+                  <Label>Relationship</Label>
+                  <Input
+                    placeholder="e.g., Spouse, Parent"
+                    value={newContact.relationship}
+                    onChange={(e) => setNewContact({ ...newContact, relationship: e.target.value })}
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button
+                    onClick={addContact}
+                    className="w-full bg-gradient-to-r from-red-600 to-orange-500"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Contact
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {personalContacts.length === 0 ? (
+            <Card className="border-none shadow-lg">
+              <CardContent className="py-20 text-center">
+                <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Personal Contacts Yet</h3>
+                <p className="text-gray-500">
+                  Add trusted contacts who will be notified during emergencies
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-4">
+              {personalContacts.map((contact, index) => (
+                <Card key={index} className="border-none shadow-lg">
+                  <CardContent className="p-6">
+                    {editingIndex === index ? (
+                      <div className="space-y-3">
+                        <Input
+                          value={contact.name}
+                          onChange={(e) => updateContact(index, "name", e.target.value)}
+                          placeholder="Name"
+                        />
+                        <Input
+                          value={contact.phone}
+                          onChange={(e) => updateContact(index, "phone", e.target.value)}
+                          placeholder="Phone"
+                        />
+                        <Input
+                          value={contact.relationship}
+                          onChange={(e) => updateContact(index, "relationship", e.target.value)}
+                          placeholder="Relationship"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => setEditingIndex(null)}
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                          >
+                            <X className="w-4 h-4 mr-2" />
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={handleSaveContacts}
+                            size="sm"
+                            className="flex-1 bg-green-600"
+                          >
+                            <Save className="w-4 h-4 mr-2" />
+                            Save
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex items-start gap-3">
+                            <div className="p-2 rounded-lg bg-gradient-to-br from-red-100 to-orange-100">
+                              <Users className="w-6 h-6 text-red-600" />
+                            </div>
+                            <div>
+                              <h3 className="font-bold text-lg text-gray-900">{contact.name}</h3>
+                              <p className="text-sm text-gray-600">{contact.relationship}</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditingIndex(index)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeContact(index)}
+                            >
+                              <Trash2 className="w-4 h-4 text-red-600" />
+                            </Button>
+                          </div>
+                        </div>
+                        <a
+                          href={`tel:${contact.phone}`}
+                          className="text-xl font-bold text-red-600 hover:text-red-700 flex items-center gap-2"
+                        >
+                          <Phone className="w-5 h-5" />
+                          {contact.phone}
+                        </a>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Important Notice */}
+        <Card className="mt-8 border-none shadow-lg bg-blue-50 border-2 border-blue-200">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-bold text-blue-900 mb-2">Important Information</h3>
+                <ul className="space-y-2 text-sm text-blue-800">
+                  <li>• Personal emergency contacts will be notified when you activate the SOS button</li>
+                  <li>• Make sure all phone numbers are up to date and correct</li>
+                  <li>• Your emergency contacts will receive your location when an alert is triggered</li>
+                  <li>• Always call official emergency services (10111) for life-threatening situations</li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
