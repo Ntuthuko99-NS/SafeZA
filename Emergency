@@ -1,0 +1,156 @@
+import React, { useState, useEffect } from "react";
+import { ntuthuko } from "@/api/ntuthukoClient";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertTriangle, Phone, Shield, Heart, Navigation, CheckCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { toast } from "sonner";
+
+export default function Emergency() {
+  const navigate = useNavigate();
+  const [sosActive, setSosActive] = useState(false);
+  const [countdown, setCountdown] = useState(5);
+  const [location, setLocation] = useState(null);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    loadUser();
+    getCurrentLocation();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+    } catch (error) {
+      console.error("Error loading user:", error);
+    }
+  };
+
+  const getCurrentLocation = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+        }
+      );
+    }
+  };
+
+  const handleSOSPress = () => {
+    setSosActive(true);
+    setCountdown(5);
+  };
+
+  useEffect(() => {
+    if (sosActive && countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (sosActive && countdown === 0) {
+      triggerEmergency();
+    }
+  }, [sosActive, countdown]);
+
+  const triggerEmergency = async () => {
+    try {
+      await ntuthuko.entities.EmergencyAlert.create({
+        alert_type: "panic",
+        location_lat: location?.lat,
+        location_lng: location?.lng,
+        status: "active",
+        contacts_notified: user?.emergency_contacts?.map(c => c.phone) || [],
+      });
+
+      toast.success("Emergency alert sent to your contacts!");
+      setSosActive(false);
+    } catch (error) {
+      console.error("Error creating emergency alert:", error);
+      toast.error("Failed to send emergency alert");
+      setSosActive(false);
+    }
+  };
+
+  const cancelSOS = () => {
+    setSosActive(false);
+    setCountdown(5);
+    toast.info("Emergency alert cancelled");
+  };
+
+  const emergencyContacts = [
+    { name: "SAPS Emergency", number: "10111", icon: Shield, color: "red" },
+    { name: "Ambulance", number: "10177", icon: Heart, color: "blue" },
+    { name: "Fire Department", number: "10111", icon: AlertTriangle, color: "orange" },
+    { name: "GBV Helpline", number: "0800 150 150", icon: Phone, color: "purple" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Emergency SOS</h1>
+          <p className="text-gray-600">Press and hold the button to activate emergency alert</p>
+        </div>
+
+        {/* SOS Button */}
+        <div className="flex justify-center mb-12">
+          <div className="relative">
+            {sosActive && (
+              <div className="absolute inset-0 animate-ping">
+                <div className="w-64 h-64 bg-red-600 rounded-full opacity-20" />
+              </div>
+            )}
+            <Button
+              className={`w-64 h-64 rounded-full text-3xl font-bold shadow-2xl transition-all ${
+                sosActive
+                  ? "bg-gradient-to-br from-red-600 to-red-700 animate-pulse"
+                  : "bg-gradient-to-br from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600"
+              }`}
+              onClick={sosActive ? cancelSOS : handleSOSPress}
+            >
+              {sosActive ? (
+                <div className="flex flex-col items-center">
+                  <AlertTriangle className="w-16 h-16 mb-4" />
+                  <span className="text-5xl mb-2">{countdown}</span>
+                  <span className="text-base">Tap to Cancel</span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center">
+                  <AlertTriangle className="w-16 h-16 mb-4" />
+                  <span>SOS</span>
+                </div>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {location && (
+          <Card className="mb-8 border-none shadow-lg bg-green-50 border-2 border-green-200">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3 text-green-800">
+                <CheckCircle className="w-5 h-5" />
+                <span className="font-medium">Location tracking enabled</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Emergency Contacts Grid */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          {emergencyContacts.map((contact, index) => (
+            <Card key={index} className="border-none shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader className={`bg-gradient-to-br from-${contact.color}-500 to-${contact.color}-600 text-white`}>
+                <div className="flex items-center gap-3">
+                  <contact.icon className="w-8 h-8" />
+                  <div>
+                    <CardTitle className="text-xl">{contact.name}</CardTitle>
+                    <a
+                      href={`tel:${contact.number}`}
+                      className="text-2xl font-bold hover:underline"
+ 
