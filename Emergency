@@ -153,4 +153,40 @@ export default function Emergency() {
                     <a
                       href={`tel:${contact.number}`}
                       className="text-2xl font-bold hover:underline"
- 
+       >
+                      {contact.number}
+                    </a>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
+
+        <Card className="border-none shadow-lg bg-blue-50">
+          <CardContent className="p-6">
+            <h3 className="font-bold text-lg text-blue-900 mb-3">How SOS Works:</h3>
+            <ul className="space-y-2 text-blue-800">
+              <li className="flex items-start gap-2">
+                <span className="font-bold">1.</span>
+                <span>Press the SOS button and a 5-second countdown will begin</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-bold">2.</span>
+                <span>Tap again within 5 seconds to cancel if pressed accidentally</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-bold">3.</span>
+                <span>After countdown, your emergency contacts will be notified with your location</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-bold">4.</span>
+                <span>A silent alert will be created in the system</span>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
