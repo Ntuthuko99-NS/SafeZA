@@ -1,0 +1,186 @@
+import React, { useState, useEffect } from "react";
+import { Ntuthuko } from "@/api/NtuthukoClient";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Shield,
+  AlertTriangle,
+  MapPin,
+  FileText,
+  CheckCircle,
+  TrendingUp,
+  Users,
+  Clock,
+  Phone,
+  Heart
+} from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import StatsCard from "../components/dashboard/StatsCard";
+import RecentReports from "../components/dashboard/RecentReports";
+import SafetyTips from "../components/dashboard/SafetyTips";
+
+export default function Dashboard() {
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+    } catch (error) {
+      console.error("Error loading user:", error);
+    }
+  };
+
+  const { data: myReports = [] } = useQuery({
+    queryKey: ['myReports', user?.email],
+    queryFn: () => user ? ntuthuko.entities.CrimeReport.filter({ created_by: user.email }, '-created_date', 10) : [],
+    enabled: !!user,
+  });
+
+  const { data: recentReports = [] } = useQuery({
+    queryKey: ['recentReports'],
+    queryFn: () => ntuthuko.entities.CrimeReport.list('-created_date', 5),
+  });
+
+  const { data: allReports = [] } = useQuery({
+    queryKey: ['allReports'],
+    queryFn: () => ntuthuko.entities.CrimeReport.list(),
+  });
+
+  const emergencyNumbers = [
+    { name: "SAPS Emergency", number: "10111", icon: Shield },
+    { name: "Ambulance", number: "10177", icon: Heart },
+    { name: "Fire Department", number: "10111", icon: AlertTriangle },
+    { name: "GBV Helpline", number: "0800 150 150", icon: Phone },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-red-50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Hero Section */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-red-600 to-orange-500 rounded-2xl shadow-2xl p-8 md:p-12">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-white opacity-5 rounded-full -ml-48 -mb-48" />
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-4">
+              <Shield className="w-12 h-12 text-white" />
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold text-white">
+                  Welcome back, {user?.full_name || 'Community Member'}
+                </h1>
+                <p className="text-red-100 mt-1">Building safer communities together</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-3 mt-6">
+              <Button
+                size="lg"
+                className="bg-white text-red-600 hover:bg-red-50 font-semibold"
+                onClick={() => navigate(createPageUrl("ReportCrime"))}
+              >
+                <FileText className="w-5 h-5 mr-2" />
+                Report Crime
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-red-600 font-semibold"
+                onClick={() => navigate(createPageUrl("Emergency"))}
+              >
+                <AlertTriangle className="w-5 h-5 mr-2" />
+                Emergency SOS
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-red-600 font-semibold"
+                onClick={() => navigate(createPageUrl("CrimeMap"))}
+              >
+                <MapPin className="w-5 h-5 mr-2" />
+                View Crime Map
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatsCard
+            title="My Reports"
+            value={myReports.length}
+            icon={FileText}
+            color="blue"
+            trend="+2 this week"
+          />
+          <StatsCard
+            title="Community Reports"
+            value={allReports.length}
+            icon={Users}
+            color="purple"
+            trend="Last 30 days"
+          />
+          <StatsCard
+            title="Verified Reports"
+            value={allReports.filter(r => r.verification_status === 'verified').length}
+            icon={CheckCircle}
+            color="green"
+            trend="High accuracy"
+          />
+          <StatsCard
+            title="Safety Score"
+            value={user?.safety_points || 0}
+            icon={TrendingUp}
+            color="orange"
+            trend="Your contribution points"
+          />
+        </div>
+
+        {/* Emergency Numbers */}
+        <Card className="border-none shadow-lg bg-white">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Phone className="w-6 h-6 text-red-600" />
+              Emergency Contacts
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {emergencyNumbers.map((contact, index) => (
+                <div
+                  key={index}
+                  className="p-4 rounded-xl bg-gradient-to-br from-red-50 to-orange-50 border border-red-100 hover:shadow-md transition-shadow"
+                >
+                  <contact.icon className="w-6 h-6 text-red-600 mb-2" />
+                  <p className="text-sm text-gray-600 mb-1">{contact.name}</p>
+                  <a
+                    href={`tel:${contact.number}`}
+                    className="text-xl font-bold text-red-600 hover:text-red-700"
+                  >
+                    {contact.number}
+                  </a>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Main Content Grid */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <RecentReports reports={recentReports} />
+          </div>
+          <div>
+            <SafetyTips />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
