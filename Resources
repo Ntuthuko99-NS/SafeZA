@@ -1,0 +1,156 @@
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Shield,
+  Heart,
+  Phone,
+  BookOpen,
+  AlertTriangle,
+  Home,
+  Car,
+  Users,
+  Lightbulb,
+  FileText,
+  GraduationCap
+} from "lucide-react";
+
+const safetyTips = [
+  {
+    category: "Home Safety",
+    icon: Home,
+    tips: [
+      "Install security gates and burglar bars on all windows and doors",
+      "Keep your doors and windows locked at all times, even when home",
+      "Install outdoor lighting and motion sensors around your property",
+      "Get a dog or install a security alarm system",
+      "Don't advertise expensive items or vacations on social media",
+      "Keep emergency numbers readily available",
+    ]
+  },
+  {
+    category: "Vehicle Safety",
+    icon: Car,
+    tips: [
+      "Always lock your car doors and keep windows closed",
+      "Check your backseat before getting into your car",
+      "Park in well-lit, busy areas whenever possible",
+      "Be aware of your surroundings when approaching your vehicle",
+      "Keep valuables out of sight - put them in the boot",
+      "Vary your route and times when traveling regularly",
+    ]
+  },
+  {
+    category: "Personal Safety",
+    icon: Shield,
+    tips: [
+      "Trust your instincts - if something feels wrong, leave immediately",
+      "Stay alert and aware of your surroundings at all times",
+      "Avoid walking alone at night in unfamiliar areas",
+      "Keep your phone charged and emergency contacts saved",
+      "Let someone know where you're going and when to expect you back",
+      "Avoid displaying expensive jewelry or electronic devices in public",
+    ]
+  },
+];
+
+const emergencyNumbers = [
+  { name: "SAPS Emergency", number: "10111", icon: Shield, description: "Police emergency services" },
+  { name: "Ambulance", number: "10177", icon: Heart, description: "Medical emergency services" },
+  { name: "Fire Department", number: "10111", icon: AlertTriangle, description: "Fire and rescue services" },
+  { name: "GBV Command Centre", number: "0800 428 428", icon: Phone, description: "Gender-Based Violence support" },
+  { name: "Childline", number: "0800 055 555", icon: Users, description: "Child protection services" },
+  { name: "Suicide Crisis Line", number: "0800 567 567", icon: Heart, description: "Mental health support" },
+];
+
+const gbvResources = [
+  {
+    title: "What is Gender-Based Violence?",
+    content: "GBV includes physical, sexual, emotional, economic, or psychological abuse. It affects people of all genders but disproportionately affects women and girls."
+  },
+  {
+    title: "Warning Signs",
+    content: "Controlling behavior, jealousy, threats, isolation from friends/family, intimidation, physical violence, forced sexual activity, economic control."
+  },
+  {
+    title: "How to Get Help",
+    content: "Call GBV Command Centre: 0800 428 428 (24/7). You can also contact SAPS Family Violence, Child Protection and Sexual Offences Unit (FCS)."
+  },
+  {
+    title: "Safety Planning",
+    content: "Identify safe places to go, keep important documents together, have a bag packed with essentials, tell trusted people about your situation."
+  },
+];
+
+const knowYourRights = [
+  {
+    title: "During a Police Stop",
+    points: [
+      "You have the right to remain silent",
+      "Police must identify themselves and explain why they stopped you",
+      "You can ask for their name and service number",
+      "You have the right to contact a lawyer",
+      "Police cannot search you without reasonable suspicion",
+    ]
+  },
+  {
+    title: "When Arrested",
+    points: [
+      "You must be informed of your rights in a language you understand",
+      "You have the right to contact a lawyer and family member",
+      "You must appear in court within 48 hours",
+      "You have the right to apply for bail",
+      "Police cannot use force unless necessary",
+    ]
+  },
+  {
+    title: "Protection Orders",
+    points: [
+      "Available for victims of domestic violence",
+      "Free to apply at any Magistrate's Court",
+      "Can be obtained without a lawyer",
+      "Prohibits abuser from contacting or approaching you",
+      "Violation of protection order is a criminal offense",
+    ]
+  },
+];
+
+export default function Resources() {
+  const [activeTab, setActiveTab] = useState("safety");
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-red-50 p-4 md:p-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Safety Resources</h1>
+          <p className="text-gray-600">Essential information to keep you and your community safe</p>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 bg-transparent h-auto">
+            <TabsTrigger value="safety" className="data-[state=active]:bg-red-600 data-[state=active]:text-white">
+              <Shield className="w-4 h-4 mr-2" />
+              Safety Tips
+            </TabsTrigger>
+            <TabsTrigger value="emergency" className="data-[state=active]:bg-red-600 data-[state=active]:text-white">
+              <Phone className="w-4 h-4 mr-2" />
+              Emergency
+            </TabsTrigger>
+            <TabsTrigger value="gbv" className="data-[state=active]:bg-red-600 data-[state=active]:text-white">
+              <Heart className="w-4 h-4 mr-2" />
+              GBV Support
+            </TabsTrigger>
+            <TabsTrigger value="rights" className="data-[state=active]:bg-red-600 data-[state=active]:text-white">
+              <BookOpen className="w-4 h-4 mr-2" />
+              Your Rights
+            </TabsTrigger>
+            <TabsTrigger value="education" className="data-[state=active]:bg-red-600 data-[state=active]:text-white">
+              <GraduationCap className="w-4 h-4 mr-2" />
+              Education
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Safety Tips */}
+          <TabsContent value="safety" className="space-y-6">
+ 
