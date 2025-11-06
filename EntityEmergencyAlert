@@ -1,0 +1,63 @@
+{
+  "name": "EmergencyAlert",
+  "type": "object",
+  "properties": {
+    "alert_type": {
+      "type": "string",
+      "enum": [
+        "panic",
+        "sos",
+        "silent_alert",
+        "check_in_failed",
+        "medical",
+        "fire",
+        "accident"
+      ],
+      "description": "Type of emergency"
+    },
+    "location_lat": {
+      "type": "number",
+      "description": "Current latitude"
+    },
+    "location_lng": {
+      "type": "number",
+      "description": "Current longitude"
+    },
+    "location_address": {
+      "type": "string",
+      "description": "Address at time of alert"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "cancelled",
+        "responded",
+        "resolved"
+      ],
+      "default": "active"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional context"
+    },
+    "contacts_notified": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Contacts that were notified"
+    },
+    "video_recording_url": {
+      "type": "string",
+      "description": "Auto-recorded video URL"
+    },
+    "response_time_seconds": {
+      "type": "number",
+      "description": "Time until resolved"
+    }
+  },
+  "required": [
+    "alert_type"
+  ]
+}
