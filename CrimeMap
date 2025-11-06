@@ -1,0 +1,156 @@
+import React, { useState, useEffect } from "react";
+import { ntuthuko } from "@/api/ntuthukoClient";
+import { useQuery } from "@tanstack/react-query";
+import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MapPin, Filter, AlertTriangle, Calendar } from "lucide-react";
+import { format } from "date-fns";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+// Fix for default marker icons in React-Leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
+
+const crimeTypeColors = {
+  theft: "#eab308",
+  hijacking: "#dc2626",
+  assault: "#f97316",
+  gbv: "#9333ea",
+  burglary: "#3b82f6",
+  robbery: "#ef4444",
+  fraud: "#06b6d4",
+  vandalism: "#84cc16",
+  drug_related: "#a855f7",
+  murder: "#7f1d1d",
+  kidnapping: "#991b1b",
+  other: "#6b7280",
+};
+
+const severityRadius = {
+  low: 200,
+  medium: 400,
+  high: 600,
+  critical: 800,
+};
+
+export default function CrimeMap() {
+  const [center, setCenter] = useState([-26.2041, 28.0473]); // Johannesburg default
+  const [filterCrimeType, setFilterCrimeType] = useState("all");
+  const [filterSeverity, setFilterSeverity] = useState("all");
+  const [filterTimeRange, setFilterTimeRange] = useState("all");
+
+  useEffect(() => {
+    // Get user's current location
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCenter([position.coords.latitude, position.coords.longitude]);
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+        }
+      );
+    }
+  }, []);
+
+  const { data: allReports = [], isLoading } = useQuery({
+    queryKey: ['crimeReports'],
+    queryFn: () => base44.entities.CrimeReport.list('-created_date', 200),
+  });
+
+  const { data: safetyRatings = [] } = useQuery({
+    queryKey: ['safetyRatings'],
+    queryFn: () => base44.entities.SafetyRating.list(),
+  });
+
+  // Filter reports based on selected filters
+  const filteredReports = allReports.filter(report => {
+    const crimeTypeMatch = filterCrimeType === "all" || report.crime_type === filterCrimeType;
+    const severityMatch = filterSeverity === "all" || report.severity === filterSeverity;
+    
+    let timeMatch = true;
+    if (filterTimeRange !== "all") {
+      const reportDate = new Date(report.incident_date);
+      const now = new Date();
+      const daysDiff = (now - reportDate) / (1000 * 60 * 60 * 24);
+      
+      if (filterTimeRange === "24h") timeMatch = daysDiff <= 1;
+      else if (filterTimeRange === "week") timeMatch = daysDiff <= 7;
+      else if (filterTimeRange === "month") timeMatch = daysDiff <= 30;
+    }
+    
+    return crimeTypeMatch && severityMatch && timeMatch && report.location_lat && report.location_lng;
+  });
+
+  // Create custom icons for different crime types
+  const createCustomIcon = (crimeType, severity) => {
+    const color = crimeTypeColors[crimeType] || "#6b7280";
+    return L.divIcon({
+      className: 'custom-icon',
+      html: `<div style="background-color: ${color}; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    });
+  };
+
+  return (
+    <div className="h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-red-50 p-4 md:p-8">
+      <div className="h-full max-w-7xl mx-auto flex flex-col">
+        <div className="mb-4">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Crime Map</h1>
+          <p className="text-gray-600">Real-time visualization of reported incidents in your area</p>
+        </div>
+
+        {/* Filters */}
+        <Card className="mb-4 border-none shadow-lg">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap gap-4 items-center">
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-gray-500" />
+                <span className="text-sm font-medium text-gray-700">Filters:</span>
+              </div>
+              
+              <Select value={filterCrimeType} onValueChange={setFilterCrimeType}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Crime Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="theft">Theft</SelectItem>
+                  <SelectItem value="hijacking">Hijacking</SelectItem>
+                  <SelectItem value="assault">Assault</SelectItem>
+                  <SelectItem value="gbv">GBV</SelectItem>
+                  <SelectItem value="burglary">Burglary</SelectItem>
+                  <SelectItem value="robbery">Robbery</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={filterSeverity} onValueChange={setFilterSeverity}>
+                <SelectTrigger className="w-36">
+                  <SelectValue placeholder="Severity" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Severity</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="critical">Critical</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={filterTimeRange} onValueChange={setFilterTimeRange}>
+                <SelectTrigger className="w-36">
+                  <SelectValue placeholder="Time Range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="24h">Last 24 Hours</SelectItem>
+ 
