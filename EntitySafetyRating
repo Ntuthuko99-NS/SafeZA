@@ -1,0 +1,39 @@
+{
+  "name": "SafetyRating",
+  "type": "object",
+  "properties": {
+    "area_name": {
+      "type": "string",
+      "description": "Suburb or neighborhood name"
+    },
+    "location_lat": {
+      "type": "number"
+    },
+    "location_lng": {
+      "type": "number"
+    },
+    "safety_score": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "1=Dangerous, 5=Very Safe"
+    },
+    "time_of_day": {
+      "type": "string",
+      "enum": [
+        "morning",
+        "afternoon",
+        "evening",
+        "night"
+      ],
+      "description": "When rating applies"
+    },
+    "comments": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "area_name",
+    "safety_score"
+  ]
+}
