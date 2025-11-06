@@ -1,0 +1,156 @@
+import React, { useState, useEffect } from "react";
+import { ntuthuko } from "@/api/ntuthukoClient";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { 
+  Shield, 
+  Heart, 
+  Phone, 
+  AlertTriangle,
+  Users,
+  Plus,
+  Edit,
+  Trash2,
+  Save,
+  X
+} from "lucide-react";
+import { toast } from "sonner";
+
+const officialContacts = [
+  { 
+    name: "SAPS Emergency", 
+    number: "10111", 
+    icon: Shield, 
+    color: "red",
+    description: "Police emergency services - available 24/7"
+  },
+  { 
+    name: "Ambulance", 
+    number: "10177", 
+    icon: Heart, 
+    color: "blue",
+    description: "Medical emergency services"
+  },
+  { 
+    name: "Fire Department", 
+    number: "10111", 
+    icon: AlertTriangle, 
+    color: "orange",
+    description: "Fire and rescue services"
+  },
+  { 
+    name: "GBV Command Centre", 
+    number: "0800 428 428", 
+    icon: Phone, 
+    color: "purple",
+    description: "Gender-Based Violence support - 24/7"
+  },
+  { 
+    name: "Childline SA", 
+    number: "0800 055 555", 
+    icon: Users, 
+    color: "green",
+    description: "Child protection and counselling"
+  },
+  { 
+    name: "Suicide Crisis Line", 
+    number: "0800 567 567", 
+    icon: Heart, 
+    color: "pink",
+    description: "24/7 mental health support"
+  },
+];
+
+export default function EmergencyContacts() {
+  const [user, setUser] = useState(null);
+  const [personalContacts, setPersonalContacts] = useState([]);
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [newContact, setNewContact] = useState({ name: "", phone: "", relationship: "" });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      setPersonalContacts(currentUser.emergency_contacts || []);
+    } catch (error) {
+      console.error("Error loading user:", error);
+    }
+  };
+
+  const handleSaveContacts = async () => {
+    setSaving(true);
+    try {
+      await base44.auth.updateMe({ emergency_contacts: personalContacts });
+      toast.success("Emergency contacts updated!");
+      setEditingIndex(null);
+      await loadUser();
+    } catch (error) {
+      console.error("Error saving contacts:", error);
+      toast.error("Failed to update contacts");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addContact = () => {
+    if (!newContact.name || !newContact.phone) {
+      toast.error("Please fill in name and phone number");
+      return;
+    }
+    setPersonalContacts([...personalContacts, newContact]);
+    setNewContact({ name: "", phone: "", relationship: "" });
+  };
+
+  const removeContact = (index) => {
+    setPersonalContacts(personalContacts.filter((_, i) => i !== index));
+  };
+
+  const updateContact = (index, field, value) => {
+    const updated = [...personalContacts];
+    updated[index] = { ...updated[index], [field]: value };
+    setPersonalContacts(updated);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-red-50 p-4 md:p-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Emergency Contacts</h1>
+          <p className="text-gray-600">Quick access to emergency services and your personal contacts</p>
+        </div>
+
+        {/* Official Emergency Numbers */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Official Emergency Services</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {officialContacts.map((contact, index) => (
+              <Card key={index} className="border-none shadow-lg hover:shadow-xl transition-all overflow-hidden">
+                <div className={`h-2 bg-gradient-to-r from-${contact.color}-500 to-${contact.color}-600`} />
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className={`p-3 rounded-xl bg-gradient-to-br from-${contact.color}-500 to-${contact.color}-600`}>
+                      <contact.icon className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-lg text-gray-900 mb-1">{contact.name}</h3>
+                      <p className="text-sm text-gray-600 mb-3">{contact.description}</p>
+                      <a
+                        href={`tel:${contact.number}`}
+                        className="inline-flex items-center gap-2 text-2xl font-bold text-red-600 hover:text-red-700"
+                      >
+                        <Phone className="w-5 h-5" />
+                        {contact.number}
+                      </a>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+ 
