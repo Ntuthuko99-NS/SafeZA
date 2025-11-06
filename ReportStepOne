@@ -1,0 +1,56 @@
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Lightbulb, Shield, Eye, Car, Home } from "lucide-react";
+
+const tips = [
+  {
+    icon: Shield,
+    title: "Stay Alert",
+    description: "Always be aware of your surroundings, especially at night or in unfamiliar areas."
+  },
+  {
+    icon: Eye,
+    title: "Trust Your Instincts",
+    description: "If something feels wrong, remove yourself from the situation immediately."
+  },
+  {
+    icon: Car,
+    title: "Vehicle Safety",
+    description: "Keep doors locked and windows up. Check your back seat before entering."
+  },
+  {
+    icon: Home,
+    title: "Secure Your Home",
+    description: "Ensure all doors and windows are locked. Install security gates and alarms."
+  }
+];
+
+export default function SafetyTips() {
+  return (
+    <Card className="border-none shadow-lg bg-gradient-to-br from-orange-50 to-red-50">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-xl">
+          <Lightbulb className="w-6 h-6 text-orange-600" />
+          Safety Tips
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {tips.map((tip, index) => (
+            <div key={index} className="p-4 rounded-xl bg-white border border-orange-100">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-orange-100">
+                  <tip.icon className="w-5 h-5 text-orange-600" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-1">{tip.title}</h4>
+                  <p className="text-sm text-gray-600">{tip.description}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
