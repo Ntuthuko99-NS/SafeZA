@@ -1,0 +1,156 @@
+import React, { useState, useEffect } from "react";
+import { ntuthuko } from "@/api/ntuthukoClient";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, Save, Plus, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { toast } from "sonner";
+
+export default function Profile() {
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState({
+    phone_number: "",
+    address: "",
+    emergency_contacts: [],
+  });
+
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      setFormData({
+        phone_number: currentUser.phone_number || "",
+        address: currentUser.address || "",
+        emergency_contacts: currentUser.emergency_contacts || [],
+      });
+    } catch (error) {
+      console.error("Error loading user:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await ntuthuko.auth.updateMe(formData);
+      toast.success("Profile updated successfully!");
+      await loadUser();
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addEmergencyContact = () => {
+    setFormData({
+      ...formData,
+      emergency_contacts: [
+        ...formData.emergency_contacts,
+        { name: "", phone: "", relationship: "" }
+      ]
+    });
+  };
+
+  const removeEmergencyContact = (index) => {
+    setFormData({
+      ...formData,
+      emergency_contacts: formData.emergency_contacts.filter((_, i) => i !== index)
+    });
+  };
+
+  const updateEmergencyContact = (index, field, value) => {
+    const updated = [...formData.emergency_contacts];
+    updated[index] = { ...updated[index], [field]: value };
+    setFormData({ ...formData, emergency_contacts: updated });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-red-50 p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center gap-4 mb-8">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => navigate(createPageUrl("Dashboard"))}
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Profile Settings</h1>
+            <p className="text-gray-500 mt-1">Manage your account and emergency contacts</p>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          {/* Basic Info */}
+          <Card className="border-none shadow-lg">
+            <CardHeader>
+              <CardTitle>Basic Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>Full Name</Label>
+                <Input value={user?.full_name || ""} disabled className="bg-gray-50" />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input value={user?.email || ""} disabled className="bg-gray-50" />
+              </div>
+              <div>
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone_number}
+                  onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                  placeholder="+27 XX XXX XXXX"
+                />
+              </div>
+              <div>
+                <Label htmlFor="address">Address</Label>
+                <Input
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  placeholder="Your residential address"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Emergency Contacts */}
+          <Card className="border-none shadow-lg">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Emergency Contacts</CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={addEmergencyContact}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Contact
+                </Button>
+              </div>
+            </CardHeader>
+ 
