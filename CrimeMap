@@ -153,4 +153,110 @@ export default function CrimeMap() {
                 <SelectContent>
                   <SelectItem value="all">All Time</SelectItem>
                   <SelectItem value="24h">Last 24 Hours</SelectItem>
- 
+          <SelectItem value="week">Last Week</SelectItem>
+                  <SelectItem value="month">Last Month</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <div className="ml-auto">
+                <Badge variant="outline" className="text-gray-700">
+                  {filteredReports.length} incidents shown
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Map */}
+        <Card className="flex-1 border-none shadow-2xl overflow-hidden">
+          <div className="h-full">
+            {isLoading ? (
+              <div className="h-full flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600" />
+              </div>
+            ) : (
+              <MapContainer
+                center={center}
+                zoom={13}
+                style={{ height: "100%", width: "100%" }}
+                className="z-0"
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                
+                {/* Render crime incidents */}
+                {filteredReports.map((report) => (
+                  <React.Fragment key={report.id}>
+                    <Circle
+                      center={[report.location_lat, report.location_lng]}
+                      radius={severityRadius[report.severity]}
+                      fillColor={crimeTypeColors[report.crime_type]}
+                      fillOpacity={0.1}
+                      color={crimeTypeColors[report.crime_type]}
+                      weight={1}
+                    />
+                    <Marker
+                      position={[report.location_lat, report.location_lng]}
+                      icon={createCustomIcon(report.crime_type, report.severity)}
+                    >
+                      <Popup>
+                        <div className="p-2 min-w-[250px]">
+                          <h3 className="font-bold text-lg mb-2">{report.title}</h3>
+                          <div className="space-y-2">
+                            <div className="flex gap-2">
+                              <Badge className="bg-red-100 text-red-800">
+                                {report.crime_type.replace(/_/g, ' ')}
+                              </Badge>
+                              <Badge className="bg-orange-100 text-orange-800">
+                                {report.severity}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-gray-700 line-clamp-3">
+                              {report.description}
+                            </p>
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <Calendar className="w-3 h-3" />
+                              {format(new Date(report.incident_date), 'MMM d, yyyy HH:mm')}
+                            </div>
+                            {report.location_address && (
+                              <div className="flex items-center gap-2 text-xs text-gray-500">
+                                <MapPin className="w-3 h-3" />
+                                {report.location_address.split(',').slice(0, 2).join(',')}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  </React.Fragment>
+                ))}
+              </MapContainer>
+            )}
+          </div>
+        </Card>
+
+        {/* Legend */}
+        <Card className="mt-4 border-none shadow-lg">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap gap-4 items-center justify-center">
+              <span className="text-sm font-medium text-gray-700">Legend:</span>
+              {Object.entries(crimeTypeColors).slice(0, 6).map(([type, color]) => (
+                <div key={type} className="flex items-center gap-2">
+                  <div
+                    className="w-4 h-4 rounded-full border-2 border-white shadow"
+                    style={{ backgroundColor: color }}
+                  />
+                  <span className="text-sm text-gray-600 capitalize">
+                    {type.replace(/_/g, ' ')}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
