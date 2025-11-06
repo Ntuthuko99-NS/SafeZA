@@ -1,0 +1,141 @@
+{
+  "name": "CrimeReport",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Brief title of the incident"
+    },
+    "crime_type": {
+      "type": "string",
+      "enum": [
+        "theft",
+        "hijacking",
+        "assault",
+        "gbv",
+        "burglary",
+        "robbery",
+        "fraud",
+        "vandalism",
+        "drug_related",
+        "murder",
+        "kidnapping",
+        "other"
+      ],
+      "description": "Type of crime"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium",
+      "description": "Incident severity level"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the incident"
+    },
+    "location_address": {
+      "type": "string",
+      "description": "Street address or location description"
+    },
+    "location_lat": {
+      "type": "number",
+      "description": "Latitude coordinate"
+    },
+    "location_lng": {
+      "type": "number",
+      "description": "Longitude coordinate"
+    },
+    "incident_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the incident occurred"
+    },
+    "suspect_description": {
+      "type": "string",
+      "description": "Description of suspect(s)"
+    },
+    "vehicle_details": {
+      "type": "string",
+      "description": "Vehicle information if applicable"
+    },
+    "witness_count": {
+      "type": "number",
+      "description": "Number of witnesses"
+    },
+    "evidence_photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Photo evidence URLs"
+    },
+    "evidence_videos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Video evidence URLs"
+    },
+    "evidence_audio": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Audio evidence URLs"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "submitted",
+        "under_review",
+        "verified",
+        "shared_with_authorities",
+        "closed"
+      ],
+      "default": "submitted"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "unverified",
+        "verified",
+        "disputed"
+      ],
+      "default": "unverified"
+    },
+    "verified_by": {
+      "type": "string",
+      "description": "Email of verifier"
+    },
+    "police_case_number": {
+      "type": "string",
+      "description": "Official SAPS case number"
+    },
+    "confirmation_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of users who confirmed witnessing"
+    },
+    "ai_summary": {
+      "type": "string",
+      "description": "AI-generated summary"
+    },
+    "is_anonymous": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether report is anonymous"
+    }
+  },
+  "required": [
+    "title",
+    "crime_type",
+    "description",
+    "incident_date"
+  ]
+}
