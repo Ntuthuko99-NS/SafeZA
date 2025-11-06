@@ -1,0 +1,186 @@
+import React, { useState, useEffect } from "react";
+import { Ntuthuko } from "@/api/ntuthukoClient";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, ArrowRight, Check, Upload, Mic, MapPin } from "lucide-react";
+import { toast } from "sonner";
+import ReportStepOne from "../components/report/ReportStepOne";
+import ReportStepTwo from "../components/report/ReportStepTwo";
+import ReportStepThree from "../components/report/ReportStepThree";
+import ReportStepFour from "../components/report/ReportStepFour";
+
+export default function ReportCrime() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [user, setUser] = useState(null);
+  const [formData, setFormData] = useState({
+    title: "",
+    crime_type: "theft",
+    severity: "medium",
+    description: "",
+    location_address: "",
+    location_lat: null,
+    location_lng: null,
+    incident_date: new Date().toISOString(),
+    suspect_description: "",
+    vehicle_details: "",
+    witness_count: 0,
+    evidence_photos: [],
+    evidence_videos: [],
+    evidence_audio: [],
+    is_anonymous: false,
+  });
+
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const currentUser = await ntuthuko.auth.me();
+      setUser(currentUser);
+    } catch (error) {
+      console.error("Error loading user:", error);
+    }
+  };
+
+  const createReportMutation = useMutation({
+    mutationFn: (data) => ntuthuko.entities.CrimeReport.create(data),
+    onSuccess: async (report) => {
+      queryClient.invalidateQueries({ queryKey: ['myReports'] });
+      queryClient.invalidateQueries({ queryKey: ['recentReports'] });
+      
+      // Generate AI summary
+      try {
+        const summary = await ntuthuko.integrations.Core.InvokeLLM({
+          prompt: `Summarize this crime report in 2-3 sentences: ${report.description}. Include: type, time, location, and key details.`,
+        });
+        await ntuthuko.entities.CrimeReport.update(report.id, { ai_summary: summary });
+      } catch (error) {
+        console.error("Error generating AI summary:", error);
+      }
+
+      toast.success("Report submitted successfully!");
+      navigate(createPageUrl("MyReports"));
+    },
+    onError: (error) => {
+      toast.error("Failed to submit report. Please try again.");
+      console.error("Error creating report:", error);
+    }
+  });
+
+  const updateFormData = (updates) => {
+    setFormData(prev => ({ ...prev, ...updates }));
+  };
+
+  const handleNext = () => {
+    if (currentStep < 4) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!formData.title || !formData.description) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    createReportMutation.mutate(formData);
+  };
+
+  const steps = [
+    { number: 1, title: "Incident Details", icon: MapPin },
+    { number: 2, title: "Suspect & Witnesses", icon: Upload },
+    { number: 3, title: "Evidence", icon: Upload },
+    { number: 4, title: "Review & Submit", icon: Check },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-red-50 p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => navigate(createPageUrl("Dashboard"))}
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Report an Incident</h1>
+            <p className="text-gray-500 mt-1">Help keep your community safe</p>
+          </div>
+        </div>
+
+        {/* Progress Steps */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            {steps.map((step, index) => (
+              <React.Fragment key={step.number}>
+                <div className="flex flex-col items-center">
+                  <div
+                    className={`w-12 h-12 rounded-full flex items-center justify-center font-semibold transition-all ${
+                      currentStep >= step.number
+                        ? "bg-gradient-to-br from-red-600 to-orange-500 text-white shadow-lg"
+                        : "bg-gray-200 text-gray-500"
+                    }`}
+                  >
+                    {currentStep > step.number ? (
+                      <Check className="w-6 h-6" />
+                    ) : (
+                      step.number
+                    )}
+                  </div>
+                  <p className="text-xs mt-2 text-center font-medium hidden md:block">
+                    {step.title}
+                  </p>
+                </div>
+                {index < steps.length - 1 && (
+                  <div
+                    className={`flex-1 h-1 mx-2 rounded transition-all ${
+                      currentStep > step.number ? "bg-gradient-to-r from-red-600 to-orange-500" : "bg-gray-200"
+                    }`}
+                  />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+
+        {/* Form Content */}
+        <Card className="border-none shadow-2xl">
+          <CardContent className="p-6 md:p-8">
+            {currentStep === 1 && (
+              <ReportStepOne formData={formData} updateFormData={updateFormData} />
+            )}
+            {currentStep === 2 && (
+              <ReportStepTwo formData={formData} updateFormData={updateFormData} />
+            )}
+            {currentStep === 3 && (
+              <ReportStepThree formData={formData} updateFormData={updateFormData} />
+            )}
+            {currentStep === 4 && (
+              <ReportStepFour formData={formData} />
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between mt-8 pt-6 border-t">
+              <Button
+                variant="outline"
+                onClick={handlePrevious}
+                disabled={currentStep === 1}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Previous
+ 
